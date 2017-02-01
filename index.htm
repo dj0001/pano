@@ -65,7 +65,7 @@ if (!query && files.name.slice(-7, -4) == ".vr") para[1] = 90
       string = this.result //var 
       string = string.match(/<x:xmpmeta[\s\S]*xmpmeta>/)
       string = (string || " ")[0].replace(/[\s\S]{28}extension[\s\S]{42}/g, "")
-      var audio = new Audio()
+      audio = new Audio()  //var 
       audio.src = "data:audio/mp4;base64," + tak("GAudio:Data");
       audio.play();
       //document.querySelector("a[download]").href = audio.src
@@ -158,7 +158,7 @@ document.querySelector("input").style.display = "none"
       document.addEventListener('mousewheel', onDocumentMouseWheel, false);
       document.addEventListener('MozMousePixelScroll', onDocumentMouseWheel, false);
 
-      function onDocumentMouseDown(event) {
+      function onDocumentMouseDown(event) {audio.play();
         event.preventDefault(); //
         if (!txt) document.querySelector("input").click();
         else
