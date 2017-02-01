@@ -1,0 +1,211 @@
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#5ac1f2">
+<link rel="manifest" href="pano.manifest">
+<link rel="icon" type="image/png" sizes="256x256" href="pano_256.png">
+<style>
+			body {
+			  background-color: #000000;
+			  margin: 0px;
+			  overflow: hidden;
+			}
+			
+			div {
+			  min-height: 100px
+			}
+</style>
+</head>
+
+<body>
+<script src="three.min.js"></script>  <!-- https:////cdnjs.cloudflare.com/ajax/libs/three.js/r76/ -->
+<input type="file" onchange="handleFiles(this.files[0])" accept="image/*">
+<div id="container" title="drag equirectangular texture into the page"></div>
+
+<script>
+//var camera, scene, renderer;
+var para = [360, 180, 0, 0] //w,h,x,y  //para ? para[1].split(",") : 
+var txt, query = top.location.search.slice(1)
+var isUserInteracting = false,
+        onMouseDownMouseX = 0,
+        onMouseDownMouseY = 0,
+        lon = 0,
+        onMouseDownLon = 0,
+        lat = 0,
+        lon0 = 0, //
+        onMouseDownLat = 0
+
+if(query) {  //console.log("todo")
+    query = decodeURIComponent(query)
+    var xhr = new XMLHttpRequest()
+    xhr.open("GET", query, true)
+    xhr.responseType = "blob"
+    xhr.onload = function() {
+      //document.querySelector("a[target]").href = "https://fiddle.jshell.net/89ua5p98/24/embedded/result/?" + query
+        //query = "0" //
+      handleFiles(this.response)
+    }
+    xhr.send()
+}
+
+  function tak(tag) {
+    var patt = new RegExp(tag + '="([\\s\\S]*?)"'),
+      //res = string[0].match(patt);
+      res = string.match(patt)
+    res = (res || ["", ""])[1];
+    if (!isNaN(res)) console.log(tag + "=" + res)
+    return res
+  }
+
+  function handleFiles(files) {
+if (!query && files.name.slice(-7, -4) == ".vr") para[1] = 90
+    var reader = new FileReader()
+    reader.onload = function() {
+      //document.querySelector("a[download]").download = files.name + ".mp4"
+      string = this.result //var 
+      string = string.match(/<x:xmpmeta[\s\S]*xmpmeta>/)
+      string = (string || " ")[0].replace(/[\s\S]{28}extension[\s\S]{42}/g, "")
+      var audio = new Audio()
+      audio.src = "data:audio/mp4;base64," + tak("GAudio:Data");
+      audio.play();
+      //document.querySelector("a[download]").href = audio.src
+
+      //document.querySelector("a>img").src = "data:image/jpeg;base64," + (tak("GImage:Data") || btoa(this.result.slice(1).match(/ÿØÿá[\s\S]*/) || "")) //.mpo
+      //document.querySelector("a>img").alt = "right"
+      //var tmp = files.name && files.name.match("right") ? document.querySelector("a>img") : document.querySelector("img")
+      //if (query != "0") tmp.src = "data:image/jpeg;base64," + btoa(this.result.replace(/.{28}extension[\s\S]*<\/x:xmpmeta>/, "")) // ?0 URL.createObjectURL(files[0]);
+      //else document.querySelector("a>img").style.maxWidth = "initial" // ?2
+
+            txt = "data:image/*;base64,"+window.btoa(this.result)  //event.target.result //string? 
+
+    var fheight = tak("GPano:FullPanoHeightPixels")
+    var top = tak("GPano:CroppedAreaTopPixels") / fheight
+    var height = tak("GPano:CroppedAreaImageHeightPixels") / fheight
+    var width = tak("GPano:CroppedAreaImageWidthPixels") / tak("GPano:FullPanoWidthPixels")
+console.log(top)
+console.log(height)
+console.log(width)
+para[1]=height*180
+para[0]=width*360
+//para[3]=f(top)
+//para[3]=90-top*180  //?
+
+            init();
+            animate()
+
+
+    }
+    reader.readAsBinaryString(files)
+document.querySelector("input").style.display = "none"
+  }
+
+      function init() {
+        var container, mesh;
+        container = document.getElementById('container');
+        camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1100);
+        camera.target = new THREE.Vector3(0, 0, 0);
+        scene = new THREE.Scene();
+        var geometry = new THREE.SphereGeometry(500, 60, 40, 0, Math.PI * 2 * para[0] / 360, Math.PI * (((para[3] || 0) - 90) / -180 - para[1] / 180 / 2), Math.PI * para[1] / 180);
+        geometry.scale(-1, 1, 1);
+        var TextureL = new THREE.TextureLoader()
+        TextureL.crossOrigin = ''; //
+        material = new THREE.MeshBasicMaterial({ //var 
+          map: TextureL.load(txt)
+        });
+        mesh = new THREE.Mesh(geometry, material);
+        scene.add(mesh);
+        renderer = new THREE.WebGLRenderer();
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        container.appendChild(renderer.domElement);
+
+      }
+
+      function animate() {
+        requestAnimationFrame(animate);
+        update();
+      }
+
+      function update() {
+        if (isUserInteracting === false) {
+          lon += 0.1;
+        }
+        lat = Math.max(-85, Math.min(85, lat));
+        phi = THREE.Math.degToRad(90 - lat);
+        theta = THREE.Math.degToRad(lon);
+        camera.target.x = 500 * Math.sin(phi) * Math.cos(theta);
+        camera.target.y = 500 * Math.cos(phi);
+        camera.target.z = 500 * Math.sin(phi) * Math.sin(theta);
+        camera.lookAt(camera.target);
+        /*
+        // distortion
+        camera.position.copy( camera.target ).negate();
+        */
+        renderer.render(scene, camera);
+      }
+
+      document.addEventListener('mousedown', onDocumentMouseDown, false);
+      document.addEventListener('mousemove', onDocumentMouseMove, false);
+      document.addEventListener('mouseup', onDocumentMouseUp, false);
+      document.addEventListener('touchstart', function(e) {
+        if (e.targetTouches.length == 2) {
+          container.webkitRequestFullScreen() //tap two finger
+        } else onDocumentMouseDown(e)
+      }, false);
+      document.addEventListener('touchmove', onDocumentMouseMove, false);
+      document.addEventListener('touchend', onDocumentMouseUp, false);
+      document.addEventListener('mousewheel', onDocumentMouseWheel, false);
+      document.addEventListener('MozMousePixelScroll', onDocumentMouseWheel, false);
+
+      function onDocumentMouseDown(event) {
+        event.preventDefault(); //
+        if (!txt) document.querySelector("input").click();
+        else
+          isUserInteracting = true;
+        onPointerDownPointerX = event.targetTouches ? event.targetTouches[0].clientX : event.clientX;
+        onPointerDownPointerY = event.targetTouches ? event.targetTouches[0].clientY : event.clientY;
+        onPointerDownLon = lon;
+        onPointerDownLat = lat;
+      }
+
+      function onDocumentMouseMove(event) {
+        if (isUserInteracting === true) {
+          lon = (onPointerDownPointerX - (event.targetTouches ? event.targetTouches[0].clientX : event.clientX)) * 0.1 + onPointerDownLon;
+          lat = ((event.targetTouches ? event.targetTouches[0].clientY : event.clientY) - onPointerDownPointerY) * 0.1 + onPointerDownLat;
+        }
+      }
+
+      function onDocumentMouseUp(event) {
+        isUserInteracting = false;
+      }
+
+      function onDocumentMouseWheel(event) {
+        // WebKit
+        if (event.wheelDeltaY) {
+          camera.fov -= event.wheelDeltaY * 0.05;
+          // Opera / Explorer 9
+        } else if (event.wheelDelta) {
+          camera.fov -= event.wheelDelta * 0.05;
+          // Firefox
+        } else if (event.detail) {
+          camera.fov += event.detail * 1.0;
+        }
+        camera.updateProjectionMatrix();
+      }
+/*
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function() {
+    navigator.serviceWorker.register('sw.js').then(function(registration) {
+      // Registration was successful
+      console.log('ServiceWorker registration successful with scope: ', registration.scope);
+    }).catch(function(err) {
+      // registration failed :(
+      console.log('ServiceWorker registration failed: ', err);
+    });
+  });
+}
+*/
+</script>
+
+</body>
+</html>
