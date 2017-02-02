@@ -85,11 +85,11 @@ if (!query && files.name.slice(-7, -4) == ".vr") para[1] = 90
 console.log(top)
 console.log(height)
 console.log(width)
-para[1]=height*180
+if(height) {para[1]=height*180
 para[0]=width*360
 //para[3]=f(top)
 //para[3]=90-top*180  //?
-para[3]=(top + height / 2) * -180 + 90
+para[3]=(top + height / 2) * -180 + 90}
 
             init();
             animate()
@@ -193,6 +193,13 @@ document.querySelector("input").style.display = "none"
         }
         camera.updateProjectionMatrix();
       }
+
+	window.addEventListener('deviceorientation', function(e) {
+        isUserInteracting = true;
+        lon += e.alpha - lon0
+        lon0 = e.alpha
+      });
+	
 /*
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
