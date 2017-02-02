@@ -10,7 +10,8 @@ self.addEventListener('install', event => {
             // cache all the static assets required for offline use.
             return cache.addAll([
                 './',
-                'index.htm'
+                'index.htm',
+                'three.min.js'
             ]);
         }).then(() => {
             // activate the new service worker immediately, without waiting for next load.
