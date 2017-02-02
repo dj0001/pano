@@ -72,19 +72,14 @@ if (!query && files.name.slice(-7, -4) == ".vr") para[1] = 90
       audio.src = "data:audio/mp4;base64," + tak("GAudio:Data");
       audio.play();
 
-            txt = "data:image/*;base64,"+window.btoa(this.result)  //event.target.result //string? 
-
     var fheight = tak("GPano:FullPanoHeightPixels")
     var top = tak("GPano:CroppedAreaTopPixels") / fheight
     var height = tak("GPano:CroppedAreaImageHeightPixels") / fheight
     var width = tak("GPano:CroppedAreaImageWidthPixels") / tak("GPano:FullPanoWidthPixels")
-console.log(top)
-console.log(height)
-console.log(width)
 if(height) {para[1]=height*180
 para[0]=width*360
 para[3]=(top + height / 2) * -180 + 90}
-
+            txt = "data:image/*;base64,"+window.btoa(this.result)  //event.target.result //string? 
             init();
             animate()
 
